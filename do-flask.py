@@ -1,61 +1,48 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from flask import Flask
 from flask import request
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET','POST'])
 def home():
-    return ('''<h1>Hello</h1>''')
+    if request.method == "GET":
+        return ('''<!DOCTYPE html>
+        <html>
+        <body>
+        <p>Click the button to get your coordinates.</p>
 
-@app.route('/getloc', methods=['GET'])
-def getloc():
-    return ('''<!DOCTYPE html>
-<html>
-<body>
+        <button onclick="getLocation()">Location</button>
+        <p id="demo"></p>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>    <script>
+        var x = document.getElementById("demo");
 
-<p>Click the button to get your coordinates.</p>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else { 
+                x.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
 
-<button onclick="getLocation()">Try It</button>
-
-<p id="demo"></p>
-
-<script>
-var x = document.getElementById("demo");
-
-function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-    } else { 
-        x.innerHTML = "Geolocation is not supported by this browser.";
-    }
-}
-
-function showPosition(position) {
-    x.innerHTML = "Latitude: " + position.coords.latitude + 
-    "<br>Longitude: " + position.coords.longitude;  
-}
-</script>
-
-</body>
-</html>''')
-
-@app.route('/signin', methods=['GET'])
-def signin_form():
-    return '''<form action="/signin" method="post">
-              <p><input name="username"></p>
-              <p><input name="password" type="password"></p>
-              <p><button type="submit">Sign In</button></p>
-              </form>'''
-
-@app.route('/signin', methods=['POST'])
-def signin():
-    # 需要从request对象读取表单内容：
-    if request.form['username']=='admin' and request.form['password']=='password':
-        return '<h3>Hello, admin!</h3>'
-    return '<h3>Bad username or password.</h3>'
+        function showPosition(position) {
+            x.innerHTML = "Latitude: " + position.coords.latitude + 
+            "<br>Longitude: " + position.coords.longitude;
+            var location = "Latitude: " + position.coords.latitude + 
+            "\tLongitude: " + position.coords.longitude;
+            $.ajax({
+            type: 'POST',
+            url: '/',
+            data: JSON.stringify({"loc": location}),
+            contentType: 'application/json;charset=UTF-8'
+            });
+            console.log(location);
+        }
+        </script>
+        </body>
+        </html>''')
+    else:
+        userLocation = request.get_json(force= True)
+        print(userLocation["loc"])
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
